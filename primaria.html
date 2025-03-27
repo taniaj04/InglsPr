@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Empareja</title>
+  <link rel="stylesheet" href="primaria.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Aventura de combinación de palabras</h1>
+    <p>Arrastra la palabra correcta debajo de la imagen.</p>
+    
+    <div class="game-container" id="game-container"></div>
+    
+    <div class="words" id="words-container"></div>
+  
+    <div class="buttons">
+      <button id="check-btn">Verificar</button>
+      <button id="exit-btn">Salir</button>
+    </div>
+  </div>
+  <audio id="correct-sound" src="arrastrar.mp3"></audio>
+  <audio id="exit-sound" src="sonido.mp3"></audio>
+
+  <script>
+    const options = [
+      { word: "cat", img: "images/cat.jpg" },
+      { word: "dog", img: "images/dog.jpg" },
+      { word: "sun", img: "images/sun.jpg" },
+      { word: "car", img: "images/car.jpg" },
+      { word: "tree", img: "images/tree.png " },
+      { word: "house", img: "images/house.jpg" }
+    ];
+
+    const gameContainer = document.getElementById('game-container');
+    const wordsContainer = document.getElementById('words-container');
+    const checkButton = document.getElementById('check-btn');
+    const exitButton = document.getElementById('exit-btn');
+    const correctSound = document.getElementById('correct-sound');
+    const exitSound = document.getElementById('exit-sound');
+
+    function shuffleArray(array) {
+      return array.sort(() => Math.random() - 0.5);
+    }
+
+    function loadNewGame() {
+      const selectedOptions = shuffleArray([...options]).slice(0, 3);
+      gameContainer.innerHTML = "";
+      wordsContainer.innerHTML = "";
+
+      selectedOptions.forEach(option => {
+        const itemDiv = document.createElement('div');
+        itemDiv.classList.add('item');
+
+        const img = document.createElement('img');
+        img.src = option.img;
+        img.alt = option.word;
+
+        const dropzone = document.createElement('div');
+        dropzone.classList.add('dropzone');
+        dropzone.setAttribute('data-answer', option.word);
+
+        itemDiv.appendChild(img);
+        itemDiv.appendChild(dropzone);
+        gameContainer.appendChild(itemDiv);
+
+        const wordDiv = document.createElement('div');
+        wordDiv.classList.add('word');
+        wordDiv.setAttribute('draggable', true);
+        wordDiv.textContent = option.word;
+
+        wordsContainer.appendChild(wordDiv);
+      });
+
+      initializeDragAndDrop();
+    }
+
+    function initializeDragAndDrop() {
+      const words = document.querySelectorAll('.word');
+      const dropzones = document.querySelectorAll('.dropzone');
+
+      words.forEach(word => {
+        word.addEventListener('dragstart', () => {
+          word.classList.add('dragging');
+        });
+        word.addEventListener('dragend', () => {
+          word.classList.remove('dragging');
+        });
+      });
+
+      dropzones.forEach(zone => {
+        zone.addEventListener('dragover', (e) => {
+          e.preventDefault();
+        });
+        zone.addEventListener('drop', (e) => {
+          const draggedWord = document.querySelector('.dragging');
+          const answer = zone.dataset.answer;
+
+          if (draggedWord.textContent === answer) {
+            zone.textContent = draggedWord.textContent;
+            zone.classList.add('success');
+            draggedWord.remove();
+            correctSound.currentTime = 0;
+            correctSound.play(); 
+          } else {
+            alert('Intenta de nuevo!');
+          }
+        });
+      });
+    }
+
+    checkButton.addEventListener('click', () => {
+      const dropzones = document.querySelectorAll('.dropzone');
+      let allCorrect = true;
+
+      dropzones.forEach(zone => {
+        if (zone.textContent.trim().toLowerCase() !== zone.dataset.answer) {
+          allCorrect = false;
+        }
+      });
+
+      if (allCorrect) {
+        alert('¡Felicidades! Todas las respuestas son correctas.');
+        loadNewGame();
+      } else {
+        alert('Algunas respuestas no son correctas. ¡Inténtalo de nuevo!');
+      }
+    });
+
+    exitButton.addEventListener('click', () => {
+      if (confirm('¿Estás seguro de que quieres salir?')) {
+        exitSound.currentTime = 0;
+        exitSound.play();
+
+        exitSound.onended = () => {
+          window.location.href = 'index.html';
+        };
+      }
+    })
+    
+    loadNewGame();
+  </script>
+</body>
+</html>
